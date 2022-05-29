@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>테트리스 만들거야</title>
+</head>
+
+<style>
+.internal{
+    color:red;
+}
+.clicked{
+    color:blue;
+}
+</style>
+
+<body>
+    <h1>TEXT</h1>
+    <h1 class="internal">으아악</h1>
+    <h1 class="internal">호에엥</h1>
+    <script>
+        var internal = document.getElementsByClassName("internal");
+        function hc(event){
+            if (event.target.classList[1] === "clicked"){
+                event.target.classList.remove("clicked");
+            }else{
+                for (var i = 0; i<internal.length;i++){
+                    internal[i].classList.remove("clicked");
+                }
+                event.target.classList.add("clicked");
+            }
+        }
+        for (var i=0; i<internal.length; i++){
+            internal[i].addEventListener("click", hc);
+        }
+    </script>
+</body>
+</html>
