@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HTML 연습</title>
+</head>
+
+<style>
+*{
+    padding: 0px;
+    margin: 0px;
+    list-style: none;
+}
+.moving{
+    background-color: grey;
+}
+.block{
+    background-color: black;
+}
+.playground > ul > li > ul > li{
+    width: 25px;
+    height: 25px;
+    outline: 1px solid #ccc;
+}
+.playground > ul > li > ul{
+    display: flex;
+}
+</style>
+
+<body>
+
+    <div class="playground">
+        <ul></ul>
+    </div>
+
+    <script>
+        const SIZE_X = 30;
+        const SIZE_Y = 30;
+        const playground = document.querySelector(".playground > ul");
+        var x;
+        var y;
+        init();
+
+        function init(){
+            for(var i=0; i<SIZE_Y; i++){
+                const li = document.createElement("li");
+                const ul = document.createElement("ul");
+
+                for(var j=0; j<SIZE_X; j++){
+                    const matrix = document.createElement("li");
+                    ul.prepend(matrix);
+                }
+
+                li.prepend(ul);
+                playground.prepend(li);
+
+            }
+
+            x=0; y=0;
+            playground.childNodes[y].childNodes[0].childNodes[x].classList.add("moving");
+
+        }
+
+        function move(type, v){
+            var flag = false;
+            if(type == "x"){
+                if(x+v>=0 && x+v<SIZE_X){
+                    x=x+v;
+                    flag=true;
+                }
+            }else{
+                if(y+v>=0 && y+v<SIZE_Y){
+                    y=y+v;
+                    flag=true;
+                }
+            }
+            if(flag){
+                const pre = document.querySelectorAll(".moving");
+                pre.forEach(block=>{
+                    block.classList.remove("moving");
+                });
+                playground.childNodes[y].childNodes[0].childNodes[x].classList.add("moving");
+            }
+        }
+
+
+        document.addEventListener("keydown", e=>{
+            switch(e.keyCode){
+                case 46: // DELETE
+                    playground.childNodes[y].childNodes[0].childNodes[x].classList.remove("block");
+                    break;
+                case 32: // SPACE BAR
+                    playground.childNodes[y].childNodes[0].childNodes[x].classList.add("block");
+                    break;
+                case 37: // LEFT
+                    move("x", -1);
+                    break;
+                case 38: // UP
+                    move("y", -1);
+                    break;
+                case 39: // RIGHT
+                    move("x", 1);
+                    break;
+                case 40: // DOWN
+                    move("y", 1);
+                    break;
+                default:
+                    break;
+            }
+        });
+
+
+    </script>
+
+</body>
+
+</html>
