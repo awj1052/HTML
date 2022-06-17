@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+ 
+<head>
+<title>Tetris</title>
+</head> 
+
+<style>
+*{
+    padding: 0px;
+    margin: 0px;
+    list-style: none;
+}
+body{
+overflow: hidden;
+}
+.score{
+text-align: center;
+text-size: 35px;
+margin-bottom: 2rem;
+}
+.playground > ul {
+width: 250px;
+margin: 0 auto;
+}
+.playground > ul > li > ul > li{
+    width: 25px;
+    height: 25px;
+    outline: 1px solid #ccc;
+}
+.playground > ul > li > ul{
+    display: flex;
+}
+.tree{
+background: green;
+}
+.zee{
+background: yellow;
+}
+.square{
+background: orange;
+}
+.bar{
+background: blue;
+}
+.elLeft{
+background: purple;
+}
+.elRight{
+background: red;
+}
+</style>
+
+<body>
+
+<div class="score">0</div>
+<div class="playground">
+  <ul></ul>
+</div>
+
+<script>
+const BLOCKTYPE = ["square", "bar", "tree", "zee", "elLeft", "elRight"]
+const BLOCKS = {
+  square: [
+    [[0,0],[0,1],[1,0],[1,1]],
+    [[0,0],[0,1],[1,0],[1,1]],
+    [[0,0],[0,1],[1,0],[1,1]],
+    [[0,0],[0,1],[1,0],[1,1]]
+  ],
+  bar: [
+    [[1,0],[2,0],[3,0],[4,0]],
+    [[2,-1],[2,0],[2,1],[2,2]],
+    [[1,0],[2,0],[3,0],[4,0]],
+    [[2,-1],[2,0],[2,1],[2,2]]
+  ],
+  tree: [
+    [[1,0],[0,1],[1,1],[2,1]],
+    [[1,0],[0,1],[1,1],[1,2]],
+    [[0,1],[1,2],[1,1],[2,1]],
+    [[1,0],[2,1],[1,1],[1,2]],
+  ],
+  zee: [
+    [[0,0],[1,0],[1,1],[2,1]],
+    [[0,1],[1,0],[1,1],[0,2]],
+    [[0,1],[1,2],[1,1],[2,2]],
+    [[2,0],[2,1],[1,1],[1,2]],
+  ],
+  elLeft: [
+    [[0,0],[0,1],[1,1],[2,1]],
+    [[1,0],[1,1],[1,2],[0,2]],
+    [[0,1],[1,1],[2,1],[2,2]],
+    [[1,0],[2,0],[1,1],[1,2]],
+  ],
+  elRight: [
+    [[1,0],[2,0],[1,1],[1,2]],
+    [[0,0],[0,1],[1,1],[2,1]],
+    [[0,2],[1,0],[1,1],[1,2]],
+    [[0,1],[2,1],[1,1],[2,2]],
+  ]
+}
+const playground = document.querySelector(".playground > ul");
+const board = document.querySelector(".score");
+const SIZE_X = 10;
+const SIZE_Y = 20;
+const info = {
+  block: "tree",
+  direction: 0,
+  left: 0,
+  top: 0
+}
+let score = 0;
+let downInterval;
+let tmp;
+let flag = true;
+
+init();
+
+function renderBlock(type=""){
+    const { block, direction, left, top } = { ...tmp };
+    const moving = document.querySelectorAll(".moving");
+    moving.forEach(blocks=>{
+      blocks.classList.remove("moving", block);
+    });
+    if(available()){
+      for(let i=0; i<4; i++){
+        const x = BLOCKS[block][direction][i][0] + left;
+        const y = BLOCKS[block][direction][i][1] + top;      
+        playground.childNodes[y].childNodes[0].childNodes[x].classList.add("moving", block);
+      }  
+    } else {
+      tmp = { ...info };
+      if(type=="retry"){
+        flag=false;
+        alert("게임 오버!!");
+        clearInterval(downInterval);
+        return;
+      }
+      setTimeout(()=>{
+        renderBlock("retry");
+        if(type=="top") seized();
+      }, 0);
+      
+    } 
+    info["left"]=left;
+    info["top"]=top;
+    info["direction"]=direction; 
+}
+
+function seized(){
+  const moving = document.querySelectorAll(".moving");
+  moving.forEach(m=>{
+    m.classList.remove("moving");
+    m.classList.add("seized");
+  });
+  checkLines();
+  createBlock();
+}
+
+function checkLines(){
+  let point = 0;
+  outer : for(let i=0; i<SIZE_Y; i++){
+    for(let j=0; j<SIZE_X; j++){
+      if(!playground.childNodes[i].childNodes[0].childNodes[j].classList.contains("seized")) continue outer;
+    }
+    playground.childNodes[i].remove();
+    createLine();
+    point+=1;
+  }
+  score+=point*point;
+  board.innerText = score;
+}
+
+function available(){
+  const { block, direction, left, top } = { ...tmp };
+  for(let i=0; i<4; i++){
+    const x = BLOCKS[block][direction][i][0] + left;
+    const y = BLOCKS[block][direction][i][1] + top;
+    if(!playground.childNodes[y] || !playground.childNodes[y].childNodes[0].childNodes[x]) return false;
+    if(playground.childNodes[y].childNodes[0].childNodes[x].classList.contains("seized")) return false;
+  }
+  return true;
+}
+ 
+function init(){
+  for(let i=0; i<SIZE_Y; i++){
+    createLine();
+  }
+  createBlock();
+}
+ 
+function createBlock(){
+  const rand = Math.floor(Math.random()*6);
+  //console.log(BLOCKTYPE[rand]);
+  info["block"] = BLOCKTYPE[rand];
+  info["direction"] = 0;
+  info["left"]=3;
+  info["top"]=0;
+  tmp = { ...info };
+  renderBlock();
+  clearInterval(downInterval);
+  downInterval = setInterval(()=>{
+    move("top", 1);
+  }, 500);
+
+}
+ 
+function createLine(){
+  const li = document.createElement("li");
+  const ul = document.createElement("ul");
+  for(let j=0; j<SIZE_X; j++){
+    const matrix = document.createElement("li");
+    ul.prepend(matrix);
+  }
+  li.prepend(ul);
+  playground.prepend(li);
+}
+
+function move(type, v){
+  tmp[type] += v;
+  renderBlock(type);
+}
+
+function changeDirection(){
+  tmp["direction"]+=1;
+  if(tmp["direction"]==4) tmp["direction"]=0;
+  renderBlock();
+}
+
+document.addEventListener("keydown", e=>{
+  if(!flag) return;
+  switch(e.keyCode){
+    case 37:  // LEFT
+      move("left", -1);
+      break;
+    case 38: // UP
+      changeDirection();
+      break;
+    case 39: // RIGHT
+      move("left", 1);
+      break;
+    case 40: // DOWN
+      move("top", 1);
+      break;
+    case 32: // SPACE
+      clearInterval(downInterval);
+      downInterval = setInterval(()=>{ move("top",1); }, 10);
+      break;
+    default:
+      break;
+
+  }
+
+});
+ 
+ 
+</script>
+ 
+</body>
+
+</html>
