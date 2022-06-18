@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tetris</title>
+</head>
+
+<style>
+
+*{
+margin: 0;
+padding: 0;
+list-style: none;
+}
+body{
+height: 100%;
+overflow: hidden;
+}
+.score{
+text-align: center;
+text-size: 36px;
+margin-bottom: 2rem;
+}
+.playground > ul > li > ul {
+display: flex;
+}
+.playground > ul > li > ul > li{
+width: 25px;
+height: 25px;
+outline: 1px solid #ccc;
+}
+.tree{
+background: green;
+}
+.square{
+background: orange;
+}
+.zee{
+background: yellow;
+}
+.bar{
+background: blue;
+}
+.elRight{
+background: purple;
+}
+.elLeft{
+background: red;
+}
+</style>
+
+<body>
+
+<div class="score">0</div>
+<div class="playground">
+  <ul></ul>
+</div>
+
+<script>
+const SIZE_Y = 25;
+const SIZE_X = 10;
+const playground = document.querySelector(".playground > ul");
+const score = document.querySelector(".score");
+
+const BLOCKTYPE = ["square", "bar", "zee", "elLeft", "elRight", "tree"]
+const BLOCK = {
+  square: [
+    [[0,0],[1,1],[1,0],[0,1]],
+    [[0,0],[1,1],[1,0],[0,1]],
+    [[0,0],[1,1],[1,0],[0,1]],
+    [[0,0],[1,1],[1,0],[0,1]],
+  ],
+  bar: [
+    [[-1,1],[0,1],[1,1],[2,1]],
+    [[1,-1],[1,0],[1,1],[1,2]],
+    [[-1,1],[0,1],[1,1],[2,1]],
+    [[1,-1],[1,0],[1,1],[1,2]],
+  ],
+  tree: [
+    [[1,0],[0,1],[1,1],[2,1]],
+    [[1,0],[1,2],[1,1],[2,1]],
+    [[1,2],[0,1],[1,1],[2,1]],
+    [[1,0],[0,1],[1,1],[1,2]],
+  ],
+  zee: [
+    [[0,0],[1,0],[1,1],[2,1]],
+    [[2,0],[2,1],[1,1],[1,2]],
+    [[0,1],[1,1],[1,0],[2,0]],
+    [[1,0],[1,1],[2,1],[2,2]],
+  ],
+  elLeft: [
+    [[1,0],[1,1],[1,2],[0,2]],
+    [[0,0],[0,1],[1,1],[2,1]],
+    [[1,0],[1,1],[1,2],[2,0]],
+    [[2,2],[0,1],[1,1],[2,1]],
+  ],
+  elRight: [
+    [[1,0],[1,1],[1,2],[2,2]],
+    [[0,2],[0,1],[1,1],[2,1]],
+    [[1,0],[1,1],[1,2],[0,0]],
+    [[2,0],[0,1],[1,1],[2,1]],
+  ]
+}
+
+let downInterval;
+let flag = true;
+const info = {
+  type: "tree",
+  dir: 0,
+  left: 3,
+  top: 0,
+};
+let point = 0;
+let tmp;
+
+init();
+
+function renderBlock(msg){
+  const { type, dir, left, top } = { ...tmp };
+  const movingBlock = document.querySelectorAll(".moving");
+  movingBlock.forEach(moving => {
+    moving.classList.remove("moving", type);
+  });
+  if(isAvailable()){
+    for(let i=0; i<4; i++){
+      const x = BLOCK[type][dir][i][0] + left;
+      const y = BLOCK[type][dir][i][1] + top;
+      playground.childNodes[y].childNodes[0].childNodes[x].classList.add("moving", type);
+    }
+  }else{
+    tmp = { ...info };
+    if(msg=="retry"){
+      flag=false;
+      alert("게임 오버!!");
+      clearInterval(downInterval);
+      return;
+    }
+    setTimeout(()=>{
+      renderBlock("retry");
+      if(msg=="top") seized();
+    },0);
+  }
+  info.dir=dir;
+  info.left=left;
+  info.top=top;
+}
+
+function seized(){
+  const movingBlock = document.querySelectorAll(".moving");
+  movingBlock.forEach(moving => {
+    moving.classList.remove("moving");
+    moving.classList.add("seized");
+  });
+  checkLines();
+  createBlock();
+}
+
+function checkLines(){
+  let p=0;
+  outer : for(let i=0; i<SIZE_Y; i++){
+    for(let j=0; j<SIZE_X; j++){
+      if(!playground.childNodes[i].childNodes[0].childNodes[j].classList.contains("seized")) continue outer;
+    }
+    playground.childNodes[i].remove();
+    p+=1;
+    createLine();
+  }
+  point+=p*p;
+  score.innerText = point;
+}
+
+function isAvailable(){
+  const { type, dir, left, top } = { ...tmp };
+  for(let i=0; i<4; i++){
+    const x = BLOCK[type][dir][i][0] + left;
+    const y = BLOCK[type][dir][i][1] + top;
+    if(!playground.childNodes[y] || !playground.childNodes[y].childNodes[0].childNodes[x]) return false;
+    if(playground.childNodes[y].childNodes[0].childNodes[x].classList.contains("seized")) return false;
+  }
+  return true;
+}
+
+function changeDirection(){
+  tmp.dir += 1;
+  if(tmp.dir==4) tmp.dir=0;
+  renderBlock();
+}
+
+function createBlock(){
+  const ran = Math.floor(Math.random()*6);
+  // RESET
+  info.type = BLOCKTYPE[ran];
+  info.dir = 0;
+  info.left = 3;
+  info.top = 0;
+  tmp = { ...info };
+  clearInterval(downInterval);
+  downInterval = setInterval(()=>{ move("top",1); }, 500);
+  renderBlock();
+}
+
+function init(){
+  for(let i=0; i<SIZE_Y; i++){
+    createLine();
+  }
+  createBlock();
+}
+
+function createLine(){
+  const li = document.createElement("li");
+  const ul = document.createElement("ul");
+  for(let i=0; i<SIZE_X; i++){
+    const matrix = document.createElement("li");
+    ul.prepend(matrix);
+  }
+  li.prepend(ul);
+  playground.prepend(li);
+}
+
+function move(moveType, amount){
+  tmp[moveType] += amount;
+  renderBlock(moveType);
+}
+
+document.addEventListener("keydown", e=>{
+  if(!flag) return;
+  switch(e.keyCode){
+    case 37:
+      move("left", -1);
+      break;
+    case 38:
+      changeDirection();
+      break;
+    case 39:
+      move("left", 1);
+      break;
+    case 40:
+      move("top", 1);
+      break;
+    case 32:
+      clearInterval(downInterval);
+      downInterval = setInterval(()=>{ move("top", 1); }, 10);
+      break;
+  }
+});
+
+</script>
+
+</body>
+
+</html>
