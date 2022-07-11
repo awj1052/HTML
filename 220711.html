@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    .wrapper {
+      place-items: center;
+      background: lightgrey;
+      display: grid;
+      height: 100%;
+    }
+
+    .info {
+      text-align: center;
+      text-size: 40px;
+    }
+
+    .circle {
+      height: 400px;
+      width: 400px;
+      border-radius: 50%;
+      background: #c51212cc;
+    }
+
+    .start {
+      text-align: center;
+      width: 75px;
+      height: 50px;
+      text-size: 20px;
+      visibility: visible;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrapper">
+    <div class="info">0 ms</div>
+    <div class="circle"></div>
+    <div>
+      <button class="start">START</button>
+    </div>
+  </div>
+
+  <script>
+    const score = document.querySelector(".info");
+    const circle = document.querySelector(".circle");
+    const start = document.querySelector(".start");
+    let time;
+    let flag=false;
+    let timeout;
+
+    circle.addEventListener("click", click);
+    start.addEventListener("click", btn);
+
+    function click() {
+      if (flag) {
+        flag = false;
+        circle.style.background = '#c51212cc';
+        score.innerText = new Date().getTime() - time + " ms";
+      }else{
+        alert("너무 빠릅니다!");
+        clearTimeout(timeout);
+      }
+      start.style.visibility = 'visible';
+    }
+
+    function btn() {
+      clearTimeout(timeout);
+      start.style.visibility = 'hidden';
+      var ranTime = 2000 + Math.floor(Math.random() * 16) * 100
+      timeout = setTimeout(() => {
+        flag=true;
+        circle.style.background = '#12c512cc';
+        time = new Date().getTime();
+      }, ranTime);
+    }
+
+
+  </script>
+</body>
+
+</html>
