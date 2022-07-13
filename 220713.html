@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            *{
+                padding: 0;
+                margin: 0;
+            }
+            body{
+                
+                height: 100vh;
+                display: grid;
+                place-items: center;
+                background: lightgrey;
+            }
+            .score{
+                text-align: center;
+                text-size: 70px;
+            }
+            .circle{
+                height: 400px;
+                width: 400px;
+                border-radius: 50%;
+                background: #c51212cc;
+            }
+            .start{
+                text-size: 70px;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body ondragstart="return false" onselectstart="return false" oncontextmenu="return false">
+        <div class="score">0 ms</div>
+        <div class="circle"></div>
+        <div class="start">START</div>
+        <script>
+            const score = document.querySelector(".score");
+            const circle = document.querySelector(".circle");
+            const btn = document.querySelector(".start");
+
+            circle.addEventListener("click", click);
+            btn.addEventListener("click", start);
+
+            var time;
+            var flag = false;
+            var timeout;
+
+            function click(){
+                if(flag){
+                    flag=false;
+                    score.innerText = new Date().getTime() - time + " ms";
+                    circle.style.background = "#c51212cc";
+                }else if(btn.style.visibility == "hidden"){
+                    alert("너무 빠릅니다!");
+                    clearTimeout(timeout);
+                }
+                btn.style.visibility = "visible";
+            }
+
+            function start(){
+                btn.style.visibility = "hidden";
+                clearTimeout(timeout);
+                const ran = 2000 + Math.floor(Math.random()*16)*100;
+                timeout = setTimeout(() => {
+                    flag=true;
+                    circle.style.background = "#12c512cc";
+                    time = new Date().getTime();
+                }, ran);
+            }
+
+
+        </script>
+    </body>
+</html>
