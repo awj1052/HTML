@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<style>
+canvas{
+border: 1px solid black;
+margin-top: 50px;
+margin-left: 50px;
+}
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas")
+const ctx = canvas.getContext("2d");
+
+canvas.width = 600;
+canvas.height = 600;
+
+var player = {
+  width: 20,
+  height: 20,
+  x: Math.floor(canvas.width/2)-20,
+  y: Math.floor(canvas.height/2)-20,
+  draw(){
+    ctx.fillStyle = 'black';
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+  }
+}
+
+var colors = ['green', 'orange', 'red']
+class food{
+  constructor(color=Math.floor(Math.random()*3)){
+    this.width = 20;
+    this.height = 20;
+    var dir = Math.floor(Math.random()*2);
+    if(dir==0){
+      this.x = Math.floor(Math.random()*(canvas.width-this.width));
+      this.y = Math.floor(Math.random()*2) ? 0 : (canvas.height-this.height);
+    }else{
+      this.x = Math.floor(Math.random()*2) ? 0 : (canvas.width-this.width);
+      this.y = Math.floor(Math.random()*(canvas.height-this.height));
+    }
+    this.color = color;
+  }
+  draw(){
+    ctx.fillStyle =colors[this.color];
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+  }
+}
+
+foods = [new food(), new food(), new food()];
+
+var animation;
+var timer = 0;
+function animate(){
+  animation = requestAnimationFrame(animate);
+  timer+=1;
+  ctx.clearRect(0,0, canvas.width, canvas.height);
+  foods.forEach(e=>{e.draw()});
+  player.draw();
+}
+
+animate();
+
+function stop(){
+  cancelAnimationFrame(animation);
+}
+
+
+var speed = 3;
+var keypress = {};
+var keyinput;
+
+keyinput = setInterval(()=>{
+  if(keypress['37']) move("x", -speed);
+  if(keypress['38']) move("y", -speed);
+  if(keypress['39']) move("x", speed);
+  if(keypress['40']) move("y", speed);
+}, 10);
+
+function move(mt, v){
+  if(mt == "x"){
+    if(player.x+v < 0 || player.x+v+player.width > canvas.width) return;
+    player.x+=v;
+  }else{
+    if(player.y+v < 0 || player.y+v+player.height > canvas.height) return;
+    player.y+=v;
+  }
+}
+
+document.addEventListener("keydown", e=>{keypress[e.which.toString()]=true;});
+document.addEventListener("keyup", e=>{keypress[e.which.toString()]=false;});
+
+</script>
+
+
+</body>
+
+</html>
