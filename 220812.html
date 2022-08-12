@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<style>
+canvas{
+border: 1px solid black;
+margin-top: 50px;
+margin-left: 50px;
+}
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas")
+const ctx = canvas.getContext("2d");
+
+canvas.width = 600;
+canvas.height = 600;
+
+var player = {
+  width: 20,
+  height: 20,
+  x: Math.floor(canvas.width/2)-20,
+  y: Math.floor(canvas.height/2)-20,
+  draw(){
+    ctx.fillStyle = 'black';
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+  }
+}
+
+var colors = ['green', 'orange', 'red']
+class food{
+  constructor(type="default", color=Math.floor(Math.random()*3, speed=3)){
+    this.width = 20;
+    this.height = 20;
+    this.vector = {'x': 0, 'y': 0}
+    if(type === "default"){
+      var dir = Math.floor(Math.random()*2);
+      if(dir==0){
+        this.x = Math.floor(Math.random()*(canvas.width-this.width));
+        this.y = Math.floor(Math.random()*2) ? 0 : (canvas.height-this.height);
+      }else{
+        this.x = Math.floor(Math.random()*2) ? 0 : (canvas.width-this.width);
+        this.y = Math.floor(Math.random()*(canvas.height-this.height));
+      }
+      var dy = player.y - this.y;
+      var dx = player.x - this.x;
+      var size = Math.sqrt(dx*dx + dy*dy);
+      this.vector.y = dy/size;
+      this.vector.x = dx/size;
+    }
+    this.color = color;
+    this.speed = speed;
+  }
+  move(){
+    this.y += this.vector.y*speed;
+    this.x += this.vector.x*speed;
+    if(this.x < 0 || this.x + this.width > canvas.width) return false;
+    if(this.y < 0 || this.y + this.height > canvas.height) return false;
+    return true;
+  }
+  draw(){
+    ctx.fillStyle = colors[this.color];
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+  }
+  collide(){
+    if(this.x + this.width >= player.x && this.x <= player.x + player.width && this.y + this.height >= player.y && this.y <= player.y + player.height) return true;
+    return false;
+  }
+  event(){
+    console.log("collide");
+  }
+}
+
+foods = [new food(), new food(), new food()];
+pattern_foods = [];
+
+var animation;
+var timer = 0;
+function animate(){
+  animation = requestAnimationFrame(animate);
+  timer+=1;
+  ctx.clearRect(0,0, canvas.width, canvas.height);
+  foods.forEach((item, index, object) => {
+    if(item.move()){ 
+      if(item.collide()){ item.event(); object.splice(index, 1); foods.push(new food());
+      }else{ item.draw(); }
+    }else{ object.splice(index, 1); foods.push(new food()); }
+  });
+  player.draw();
+}
+
+animate();
+
+function stop(){
+  cancelAnimationFrame(animation);
+}
+
+
+var speed = 3;
+var keypress = {};
+var keyinput;
+
+keyinput = setInterval(()=>{
+  if(keypress['37']) move("x", -speed);
+  if(keypress['38']) move("y", -speed);
+  if(keypress['39']) move("x", speed);
+  if(keypress['40']) move("y", speed);
+}, 10);
+
+function move(mt, v){
+  if(mt == "x"){
+    if(player.x+v < 0 || player.x+v+player.width > canvas.width) return;
+    player.x+=v;
+  }else{
+    if(player.y+v < 0 || player.y+v+player.height > canvas.height) return;
+    player.y+=v;
+  }
+}
+
+document.addEventListener("keydown", e=>{keypress[e.which.toString()]=true;});
+document.addEventListener("keyup", e=>{keypress[e.which.toString()]=false;});
+
+</script>
+
+
+</body>
+
+</html>
