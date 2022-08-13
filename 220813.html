@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<style>
+canvas{
+border: 1px solid black;
+margin-top: 30px;
+margin-left: 50px;
+}
+.score{
+height: 10px;
+width: 600px;
+margin-top: 20px;
+margin-left: 50px;
+text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div class="score">0</div>
+<canvas id="canvas"></canvas>
+
+<script>
+const score = document.querySelector(".score");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = 600;
+canvas.height = 600;
+
+var player = {
+  life: 10,
+  width: 20,
+  height: 20,
+  x: Math.floor(canvas.width/2)-20,
+  y: Math.floor(canvas.height/2)-20,
+  draw(){
+    ctx.fillStyle = 'black';
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+  }
+}
+
+var colors = ['green', 'orange', 'red']
+class food{
+  constructor(type="default", color=Math.floor(Math.random()*3), speed=3){
+    this.width = 20;
+    this.height = 20;
+    this.vector = {'x': 0, 'y': 0}
+    if(type === "default"){
+      var dir = Math.floor(Math.random()*2);
+      if(dir==0){
+        this.x = Math.floor(Math.random()*(canvas.width-this.width));
+        this.y = Math.floor(Math.random()*2) ? 0 : (canvas.height-this.height);
+      }else{
+        this.x = Math.floor(Math.random()*2) ? 0 : (canvas.width-this.width);
+        this.y = Math.floor(Math.random()*(canvas.height-this.height));
+      }
+      var dy = player.y - this.y;
+      var dx = player.x - this.x;
+      var size = Math.sqrt(dx*dx + dy*dy);
+      this.vector.y = dy/size;
+      this.vector.x = dx/size;
+    }
+    this.color = color;
+    this.speed = speed;
+  }
+  move(){
+    this.y += this.vector.y*this.speed;
+    this.x += this.vector.x*this.speed;
+    if(this.x < 0 || this.x + this.width > canvas.width) return false;
+    if(this.y < 0 || this.y + this.height > canvas.height) return false;
+    return true;
+  }
+  draw(){
+    ctx.fillStyle = colors[this.color];
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+  }
+  collide(){
+    if(this.x + this.width >= player.x && this.x <= player.x + player.width && this.y + this.height >= player.y && this.y <= player.y + player.height) return true;
+    return false;
+  }
+  event(){
+    switch(this.color){
+      case 0:
+        player.life+=1;
+        break;
+      case 1:
+        timer+=500;
+        break;
+      case 2:
+        player.life-=2;
+        if(player.life<=0){
+          alert("게임 오버!");
+          stop();
+        }
+        break;
+    }
+  }
+}
+
+foods = [new food(), new food(), new food()];
+pattern_foods = [];
+
+var animation;
+var timer = 0;
+function animate(){
+  animation = requestAnimationFrame(animate);
+  timer+=1;
+  score.innerText = "Score : " + parseInt(timer/10) + " Life : " + player.life;
+  ctx.clearRect(0,0, canvas.width, canvas.height);
+  foods.forEach((item, index, object) => {
+    if(item.move()){ 
+      if(item.collide()){ item.event(); var f = new food(); f.speed=item.speed; object.splice(index, 1); foods.push(f);
+      }else{ item.draw(); }
+    }else{ var f = new food(); f.speed=item.speed; object.splice(index, 1); foods.push(f) }
+  });
+  var tmp = parseInt(timer/3000);
+  if(foods.length < tmp+3){
+    var f = new food(); f.speed=3+tmp/4; console.log(f.speed); foods.push(f);
+    player.width+=1; player.height+=1;
+  }
+  player.draw();
+}
+
+var flag=true;
+start();
+
+function stop(){
+  cancelAnimationFrame(animation);
+}
+
+function start(){
+  animate();
+}
+
+
+var speed = 4;
+var keypress = {};
+var keyinput;
+
+keyinput = setInterval(()=>{
+  if(keypress['37']) move("x", -speed);
+  if(keypress['38']) move("y", -speed);
+  if(keypress['39']) move("x", speed);
+  if(keypress['40']) move("y", speed);
+}, 10);
+
+function move(mt, v){
+  if(mt == "x"){
+    if(player.x+v < 0 || player.x+v+player.width > canvas.width) return;
+    player.x+=v;
+  }else{
+    if(player.y+v < 0 || player.y+v+player.height > canvas.height) return;
+    player.y+=v;
+  }
+}
+
+document.addEventListener("keydown", e=>{
+
+if(e.keyCode==65){
+  if(flag){ stop(); flag=false;}
+  else{ start(); flag=true; }
+}
+keypress[e.which.toString()]=true;}
+);
+
+document.addEventListener("keyup", e=>{keypress[e.which.toString()]=false;});
+
+</script>
+
+
+</body>
+
+</html>
