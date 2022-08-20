@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body{
+ background: #372C25
+}
+td{
+text-align: center;
+vertical-align: center;
+border-radius: 9px;
+border: 2px solid #372c25;
+font-size: 18pt;
+font-weight: bold;
+height: 70px;
+width: 70px;
+color: #684A23;
+}
+p{
+color: white;
+vertical-align: center;
+}
+#title{
+color: white;
+font-size: 48px;
+margin: 0;
+padding: 0;
+}
+#titlePad{
+background: #372C25;
+width: 148px;
+height: 35px;
+margin: 0  
+}
+#titleBar{
+height: 70px;
+margin-left: 70px;
+margin-top: 30px;
+}
+#scorePad{
+height: 35px;
+width: 148px;
+background: #46382E;
+margin: 0;
+padding: 0;
+}
+#scoreType{
+color: #715541;
+font-size: 14pt;
+margin: 0;
+}
+#score{
+color: white;
+font-size: 28pt;
+margin: 0;
+}
+#board{
+margin-left: 70px;
+margin-top: 5px;
+}
+</style>
+</head>
+
+<body>
+
+<table id="titleBar">
+  <tr>
+    <td id="titlePad"><p id="title">2048</p></td>
+    <td id="scorePad"><p id="scoreType">Score</p><p id="score"></p></td>
+  </tr>
+</table>
+<table id="board">
+  <tr>
+    <td id="00"></td>
+    <td id="01"></td>
+    <td id="02"></td>
+    <td id="03"></td>
+  </tr>
+  <tr>
+    <td id="10"></td>
+    <td id="11"></td>
+    <td id="12"></td>
+    <td id="13"></td>
+  </tr>
+  <tr>
+    <td id="20"></td>
+    <td id="21"></td>
+    <td id="22"></td>
+    <td id="23"></td>
+  </tr>
+  <tr>
+    <td id="30"></td>
+    <td id="31"></td>
+    <td id="32"></td>
+    <td id="33"></td>
+  </tr>
+</table>
+
+<script>
+const scoreE = document.getElementById("score");
+
+var score;
+var board;
+var newLoc=[-1,-1];
+
+init();
+
+function init(){
+  board=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+  score=0;
+  
+  var ranArr = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
+  var cnt = 2;
+  while(cnt-->0){
+    var ran = parseInt(Math.random()*ranArr.length);
+    var y = parseInt(ran/4);
+    var x = ran%4;
+    board[y][x]=getNewNum();
+  } 
+  update();
+}
+
+function move(){
+  score = 0;
+  var isMoved = false;
+  for(var x=0; x<4; x++){
+    var nums = [];
+    for(var y=0; y<4; y++){
+      if(board[y][x]==0){ isMoved = true; continue; }
+      score+=board[y][x];
+      nums.push(board[y][x]);
+    }
+    var i=0;
+    while(i+1<nums.length){
+      if(nums[i]==nums[i+1]){
+        isMoved = true;
+        nums[i]*=2;
+        nums.splice(i+1,1);
+      }
+      i++;
+    }
+    for(var k=0; k<4; k++){
+      board[k][x]=0;
+    }
+    for(var k=0; k<nums.length; k++){
+      board[3-k][x]=nums[nums.length-k-1];
+    }
+  }
+  scoreE.innerText = score;
+  newLoc=[-1,-1];
+  if(isMoved) generate();
+}
+
+function generate(){
+  var tmp=[];
+  for(var y=0; y<4; y++){
+    for(var x=0; x<4; x++){
+      if(board[y][x]==0) tmp.push([y,x]);
+    }
+  }
+  if(tmp.length==0) return;
+  var ran = parseInt(Math.random()*tmp.length);
+  newLoc = [tmp[ran][0], tmp[ran][1]];
+  board[newLoc[0]][newLoc[1]]=getNewNum();
+}
+
+function rotate(n){
+  while(n-->0){
+    var tmp=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+    for(var y=0; y<4; y++){
+      for(var x=0; x<4; x++){
+        tmp[y][x]=board[y][x];
+      }
+    }
+    for(var y=0; y<4; y++){
+      for(var x=0; x<4; x++){
+        board[x][3-y]=tmp[y][x];
+      }
+    }
+    if(newLoc[0]!=-1){
+      var tmpLoc = [newLoc[0], newLoc[1]];
+      newLoc[0] = tmpLoc[1];
+      newLoc[1] = 3-tmpLoc[0]; 
+    }
+  }
+}
+
+function update(){
+    for(var y=0; y<4; y++){
+      for(var x=0; x<4; x++){
+        const cell = document.getElementById(y+""+x);
+        cell.innerText = board[y][x]==0 ? "" : board[y][x];
+        colors = color(board[y][x]);
+        if(newLoc[0]==y && newLoc[1]==x) colors[0]="tomato";
+        cell.style.color = colors[0];
+        cell.style.background = colors[1];
+      }
+    }
+}
+
+function color(n){
+  var color = "#684A23";
+  var back = "#ABCDEF";
+  switch(n){
+    case 0:
+    case 2:
+      back="#FBEDDC"; break;
+    case 4:
+      back="#F9E2C7"; break;
+    case 8:
+      back="#F6D5AB"; break;
+    case 16:
+    case 32:
+    case 64:
+    case 128:
+    case 256:
+    case 512:
+    case 1024:
+    case 2048:
+    default:
+ 
+  }
+  return [color, back];
+}
+
+function getNewNum(){
+  if(parseInt(Math.random()*10)==0) return 4;
+  return 2;
+}
+
+document.addEventListener("keydown", e=>{
+  switch(e.keyCode){
+    case 37: rotate(3); move(); rotate(1); update(); break;
+    case 38: rotate(2); move(); rotate(2); update(); break;
+    case 39: rotate(1); move(); rotate(3); update(); break;
+    case 40: move(); update(); break;
+  }
+});
+
+</script>
+</body>
+</html>
